@@ -1,4 +1,4 @@
-# myftp
+# Myftp - Zeus
 Cliente FTP distribuido.
 
 Trabalho da disciplina de sistemas distribuidos.
