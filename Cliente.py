@@ -32,6 +32,7 @@ class Cliente(object):
             return True
         else:
             return False
+
     def inicia_conexao(self,ip,porta):
         """Inicia a conexão com servidor."""
         self.ip_conexao=ip
@@ -39,7 +40,29 @@ class Cliente(object):
         destino=(self.ip_conexao,int(self.porta))
         self.tcp.connect(destino)
         retorno=self.tcp.recv(1024)
-        print("Mensagem Inicial:",retorno.decode("utf-8"))
+        retorno=pickle.loads(retorno)
+        print("Mensagem Inicial:",retorno)
+
+    def encerrar_conexao(self):
+        """encerra a conexão com o servidor de conexão"""
+        print("Conexão encerrada.\nBye.")
+        self.tcp.close()
+        exit(-1)
+
+    def exibe_lista(self,lista):
+        for i in lista:
+            print("-",i)
+
+    def processa_resposta(self,resposta):
+        """processa a resposta recebida do servidor"""
+
+        if("logout" in resposta):
+            self.encerrar_conexao()
+        elif("ls" in resposta):
+            self.exibe_lista(resposta['ls'])
+        else:
+            print(resposta)
+
     def console(self):
         """Inicia o console de comandos"""
         #print("Digite a sua mensagem   ")
@@ -50,16 +73,19 @@ class Cliente(object):
                 # print('sending {!r}'.format(message))
                 # self.tcp.sendall(message)
                 # Look for the response
+                comando=""
                 comando=input(">> ")
-                self.tcp.sendall(comando.encode())
-                data = self.tcp.recv(1024)
-                print(data.decode("utf8"))
+                comando_inst=pickle.dumps(comando)
+                self.tcp.sendall(comando_inst)
+                resposta = self.tcp.recv(1024)
+                #print(resposta.decode("utf8"))
+                resposta=pickle.loads(resposta)
+                self.processa_resposta(resposta)
             except Exception as e:
-                print(e)
-                print('closing socket')
-                self.tcp.close()
-    def encerrar_conexao(self):
-        tcp.close()
+                print(e,pickle.loads(comando_inst),resposta)
+                # print('closing socket')
+                # self.tcp.close()
+                self.encerrar_conexao()
 cliente=Cliente()
 cliente.inicia_conexao(sys.argv[1],sys.argv[2])
 senha=cliente.login(sys.argv[3])
