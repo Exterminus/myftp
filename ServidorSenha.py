@@ -23,17 +23,17 @@ class ServidorSenha(object):
         dados=self.colecao.find_one({"login":usuario})
         if(dados is None):
             print("Usuário não encontrado")
-            return False
+            return False,False
         else:
             senha=crypt.crypt(senha,dados['senha'])
             # print(comparador(senha,dados['senha']))
             if(comparador(senha,dados['senha'])):
                 print("usuário logado")
-                return True
+                return True,dados['root']
             else:
                 #senha ou usuário invalido
                 print("erro no login")
-                return False
+                return False,False
             #comparador(dados.senha)
     def alive(self,nome):
 
