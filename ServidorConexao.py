@@ -5,6 +5,7 @@ import _thread as thread
 import getpass
 import xmlrpc.client
 import pickle
+from Usuario import Usuario
 class ServidorConexao(object):
     """docstring for ServidorConexao."""
     def __init__(self):
@@ -15,43 +16,83 @@ class ServidorConexao(object):
         self.tcp.listen(1)
         #chamada RPC para o servidor de senha.
         self.senha_auth=xmlrpc.client.ServerProxy("http://localhost:8000/")
+        #chamada RPC para o servidor de arquivos.
+        self.arquivos=xmlrpc.client.ServerProxy("http://localhost:8001/")
+        self.usuarios_logados=[]
 
     def rpc_senha(self,usuario,senha):
         """Valida a senha e usuario"""
         print(usuario,senha)
         try:
-            retorno=self.senha_auth.login(usuario,senha)
+            retorno,permissao=self.senha_auth.login(usuario,senha)
             if(retorno):
                 #devolve a resposta de login sucesso
-                return True
+                user=self.sucess_login(usuario,permissao)
+                return True,user
             else:
-                return False
+                return False,False
         except xmlrpc.client.Fault as err:
             print("Ocorreu um erro")
             print("Código de erro %d" % err.faultCode)
             print("Fault string: %s" % err.faultString)
 
-    def processa_comando(self,conexao,comando):
+    def sucess_login(self,login,permissao):
+        """adiciona um novo usuário na lista de usuários logados"""
+        #instancia um novo usuario
+        user=Usuario(login,permissao)
+        #adiciona na lista de usuarios
+        self.usuarios_logados.append(user)
+        return user
+
+    def logoff(self,login):
+        """realiza o logoff"""
+        for i in range(0,len(self.usuarios_logados)):
+            if(login==self.usuarios_logados[i].getLogin()):
+                index=i
+        self.usuarios_logados.pop(index)
+
+    def processa_comando(self,conexao,comando,user):
+        """processa os comandos"""
         #encerra a conexao com o cliente
-        if(comando.decode("utf-8")=="logout"):
-            conexao.sendall(b"-1")
+        comando=pickle.loads(comando)
+        if(comando=="logout"):
+            print("Logout")
+            instrucao={}
+            instrucao['logout']="logout"
+            instrucao=pickle.dumps(instrucao)
+            print(instrucao)
+            conexao.sendall(instrucao)
+            #logoff(login)
             conexao.close()
             thread.exit()
-
-
+        if(comando=="ls"):
+            print("Retornando LS")
+            instrucao={}
+            print(user.getHome())
+            lista=self.arquivos.ls(user.getHome())
+            instrucao['ls']=lista
+            print("Instrucao LS",instrucao)
+            instrucao=pickle.dumps(instrucao)
+            conexao.sendall(instrucao)
+        else:
+            print('sending data back to the client')
+            conexao.sendall(pickle.dumps(comando))
     def conectado(self,connection, cliente):
         """verificar o disparo e encerramento de threads"""
-        connection.sendall(b'Bem vindo ao Zeus FTP v 1.0 2018.')
+        msg='Bem vindo ao Zeus FTP v 1.0 2018.'
+        msg=pickle.dumps(msg)
+        connection.sendall(msg)
         estado_login=False
         data=connection.recv(1024)
         dados_login=pickle.loads(data)
-        if(self.rpc_senha(dados_login['usuario'],dados_login['senha'])):
+        retorno,user =self.rpc_senha(dados_login['usuario'],dados_login['senha'])
+        if(retorno):
             estado_login=True
             #sucesso ao realizar o login
             connection.sendall(pickle.dumps(True))
         else:
             #erro ao efetuar o login
-            connection.sendall(b"False")
+            connection.sendall(pickle.dumps(False))
         if(estado_login== True):
             while True:
                 # Wait for a connection
@@ -60,19 +101,20 @@ class ServidorConexao(object):
                     # Receive the data in small chunks and retransmit it
                     data = connection.recv(1024)
                     print(data)
-                    print('received {!r}'.format(data))
-                    self.processa_comando(connection,data)
-                    if data:
-                        print('sending data back to the client')
-                        connection.sendall(data)
-                    else:
-                        print('no data from', cliente)
-                        break
+                    print('received',pickle.loads(data))
+                    self.processa_comando(connection,data,user)
+                    # if data:
+                    #     print('sending data back to the client')
+                    #     connection.sendall(data)
+                    # else:
+                    #     print('no data from', cliente)
+                    #     break
                 except Exception as e:
                     # Clean up the connection
                     print("e",e)
                     connection.close()
                     thread.exit()
+
     def iniciar_servidor(self):
         print("Servidor Iniciado.. na porta",self.porta)
         while True:
