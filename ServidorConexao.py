@@ -44,6 +44,11 @@ class ServidorConexao(object):
         self.usuarios_logados.append(user)
         return user
 
+    def comando_invalido(self,conexao):
+        """retorna mensagem de comando invalido"""
+        msg="Comando inválido ou faltando parametros."
+        conexao.sendall(pickle.dumps(msg))
+
     def logoff(self,login):
         """realiza o logoff"""
         for i in range(0,len(self.usuarios_logados)):
@@ -55,6 +60,11 @@ class ServidorConexao(object):
         """processa os comandos"""
         #encerra a conexao com o cliente
         comando=pickle.loads(comando)
+        instrucao=comando.split(" ")
+        comando=instrucao[0]
+        if(len(instrucao)>1):
+            parametros=instrucao[1]
+
         if(comando=="logout"):
             print("Logout")
             instrucao={}
@@ -65,7 +75,8 @@ class ServidorConexao(object):
             #logoff(login)
             conexao.close()
             thread.exit()
-        if(comando=="ls"):
+
+        elif(comando=="ls"):
             print("Retornando LS")
             instrucao={}
             print(user.getHome())
@@ -74,6 +85,33 @@ class ServidorConexao(object):
             print("Instrucao LS",instrucao)
             instrucao=pickle.dumps(instrucao)
             conexao.sendall(instrucao)
+        elif(comando=="mkdir"):
+            #print("mkdir",len(instrucao),comando)
+            if(len(instrucao)>1):
+                #print(instrucao,parametros)
+                #print(user.getHome()+parametros)
+                instrucao={}
+                #print(user.getHome())
+                estado=self.arquivos.mkdir(user.getHome()+"/"+parametros)
+                instrucao['mkdir']=estado
+                instrucao=pickle.dumps(instrucao)
+                conexao.sendall(instrucao)
+        elif(comando=="rmdir"):
+            if(len(instrucao)>1):
+                #print(instrucao,parametros)
+                #print(user.getHome()+parametros)
+                instrucao={}
+                #print(user.getHome())
+                estado=self.arquivos.rmdir(user.getHome()+"/"+parametros)
+                instrucao['rmdir']=estado
+                instrucao=pickle.dumps(instrucao)
+                conexao.sendall(instrucao)
+            else:
+                self.comando_invalido(conexao)
+            #instrucao['ls']=lista
+            #print("Instrucao LS",instrucao)
+            #instrucao=pickle.dumps(instrucao)
+            #conexao.sendall(instrucao)
         else:
             print('sending data back to the client')
             conexao.sendall(pickle.dumps(comando))

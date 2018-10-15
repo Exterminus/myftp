@@ -55,8 +55,24 @@ class Cliente(object):
 
     def processa_resposta(self,resposta):
         """processa a resposta recebida do servidor"""
-
-        if("logout" in resposta):
+        if(resposta is True or resposta is None):
+            print(resposta)
+            
+        if("rmdir" in resposta):
+            #print(resposta['rmdir'])
+            if(resposta['rmdir'] is True):
+                print(resposta['rmdir'])
+                print("diretório removido")
+            else:
+                print("erro ao remover o diretório.")
+        elif("mkdir" in resposta):
+            #print(resposta['mkdir'])
+            if(resposta['mkdir'] is True):
+                print(resposta['mkdir'])
+                print("diretório criado")
+            else:
+                print("erro ao criar o diretório.")
+        elif("logout" in resposta):
             self.encerrar_conexao()
         elif("ls" in resposta):
             self.exibe_lista(resposta['ls'])

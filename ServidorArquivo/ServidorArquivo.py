@@ -19,6 +19,24 @@ class ServidorArquivo(object):
         arquivos=os.listdir(home)
         return arquivos
 
+    def mkdir(self,nome):
+        """cria um diretorio"""
+        print("mkdir")
+        try:
+            os.mkdir(nome)
+            return True
+        except Exception as e:
+            return False
+            
+    def rmdir(self,nome):
+        """apaga um diretorio"""
+        print("rmdir")
+        try:
+            os.rmdir(nome)
+            return True
+        except Exception as e:
+            return False
+
     def getCaminho(self):
         """retorna o caminho da home"""
         return self.caminho

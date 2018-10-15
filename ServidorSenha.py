@@ -4,6 +4,7 @@ from hmac import compare_digest as comparador
 import crypt
 from xmlrpc.server import SimpleXMLRPCServer
 import xmlrpc.client
+
 class ServidorSenha(object):
     """docstring for ServidorSenha."""
     def __init__(self):
