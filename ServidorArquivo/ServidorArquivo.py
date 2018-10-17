@@ -18,7 +18,9 @@ class ServidorArquivo(object):
         print("Ls",home)
         arquivos=os.listdir(home)
         return arquivos
-
+    def cd(self,caminho):
+        pass
+        os.exists(caminho)
     def mkdir(self,nome):
         """cria um diretorio"""
         print("mkdir")
@@ -27,7 +29,7 @@ class ServidorArquivo(object):
             return True
         except Exception as e:
             return False
-            
+
     def rmdir(self,nome):
         """apaga um diretorio"""
         print("rmdir")

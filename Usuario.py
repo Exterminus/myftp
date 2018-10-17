@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
+"""
+Classe do usuário.
+"""
 class Usuario():
     """docstring for Usuario."""
     def __init__(self,login,root):

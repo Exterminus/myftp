@@ -1,4 +1,8 @@
-# encoding:utf8
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+"""
+Servidor de Conexao
+"""
 import sys
 import socket
 import _thread as thread

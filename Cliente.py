@@ -1,4 +1,8 @@
-# encoding:utf8
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+"""
+Cliente
+"""
 import sys
 import socket
 import getpass
@@ -57,7 +61,7 @@ class Cliente(object):
         """processa a resposta recebida do servidor"""
         if(resposta is True or resposta is None):
             print(resposta)
-            
+
         if("rmdir" in resposta):
             #print(resposta['rmdir'])
             if(resposta['rmdir'] is True):

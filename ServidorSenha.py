@@ -1,4 +1,9 @@
-# encoding:utf-8
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+"""
+Servidor de Senha
+Módulo com classe senha.
+"""
 from pymongo import MongoClient
 from hmac import compare_digest as comparador
 import crypt
@@ -36,6 +41,7 @@ class ServidorSenha(object):
                 print("erro no login")
                 return False,False
             #comparador(dados.senha)
+
     def alive(self,nome):
 
         return self.on
