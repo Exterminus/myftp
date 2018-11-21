@@ -25,3 +25,6 @@ class Usuario():
 
     def getHome(self):
         return self.home
+
+    def setHome(self,caminho):
+        self.home=caminho

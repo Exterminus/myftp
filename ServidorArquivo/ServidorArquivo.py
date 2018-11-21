@@ -3,6 +3,9 @@ from xmlrpc.server import SimpleXMLRPCServer
 import sys
 import os
 
+#usado para deletar, cuidado ao utilizar
+import shutil
+
 class ServidorArquivo(object):
     """docstring for ServidorArquivo."""
     def __init__(self):
@@ -12,15 +15,33 @@ class ServidorArquivo(object):
     def setCaminho(self,nome_usuario):
         """define o caminho da home a partir do nome do usuário"""
         self.caminho+=nome_usuario+"/"
+    def gera_caminho(self,lista):
+        return "/".join(lista)
 
     def ls(self,home):
         """lista os arquivos no diretorio"""
         print("Ls",home)
         arquivos=os.listdir(home)
         return arquivos
+
     def cd(self,caminho):
-        pass
-        os.exists(caminho)
+        """caminha pela home"""
+        if(".." in caminho):
+            path=caminho.split("/")
+            print("len",len(path))
+            if(len(path)==2):
+                print("erro")
+                return False,None
+            path.pop()
+            if(len(path)>2):
+                path.pop()
+            return True,self.gera_caminho(path)+"/"
+
+        elif(os.path.exists(caminho)):
+            print("caminho",caminho)
+            return True,caminho+"/"
+        else:
+            return False
     def mkdir(self,nome):
         """cria um diretorio"""
         print("mkdir")
@@ -29,15 +50,31 @@ class ServidorArquivo(object):
             return True
         except Exception as e:
             return False
-
-    def rmdir(self,nome):
-        """apaga um diretorio"""
-        print("rmdir")
+    def delete(self,nome):
         try:
-            os.rmdir(nome)
+            os.remove(nome)
             return True
         except Exception as e:
             return False
+    def rmdir(self,nome):
+        """apaga um diretorio"""
+        print("rmdir-- usando shutil")
+        try:
+            shutil.rmtree(nome)
+            return True
+        except Exception as e:
+            return False
+
+    def get(self,caminho):
+        """abre e retorna um arquivo"""
+        try:
+            arquivo=open(caminho,"rb")
+            file=arquivo.read()
+            arquivo.close()
+            return True,file
+        except Exception as e:
+            return False,None
+
 
     def getCaminho(self):
         """retorna o caminho da home"""

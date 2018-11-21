@@ -89,6 +89,23 @@ class ServidorConexao(object):
             print("Instrucao LS",instrucao)
             instrucao=pickle.dumps(instrucao)
             conexao.sendall(instrucao)
+        elif(comando =="cd"):
+            #print("Comando cd")
+            pasta=instrucao
+            print("CMD",comando,"Instrucao",instrucao)
+            instrucao={}
+            path=user.getHome()+pasta[1]
+            print("Caminho",path)
+            lista,new_path=self.arquivos.cd(path)
+            #atualiza a rota da home..
+            if(lista is True):
+                user.setHome(new_path)
+            print("Retorno cd",lista)
+            instrucao['cd']=lista
+            instrucao['home']=user.getHome()
+            print("Instrucao CD",instrucao)
+            instrucao=pickle.dumps(instrucao)
+            conexao.sendall(instrucao)
         elif(comando=="mkdir"):
             #print("mkdir",len(instrucao),comando)
             if(len(instrucao)>1):
@@ -98,6 +115,33 @@ class ServidorConexao(object):
                 #print(user.getHome())
                 estado=self.arquivos.mkdir(user.getHome()+"/"+parametros)
                 instrucao['mkdir']=estado
+                instrucao=pickle.dumps(instrucao)
+                conexao.sendall(instrucao)
+        elif(comando=="delete"):
+            #print("mkdir",len(instrucao),comando)
+            if(len(instrucao)>1):
+                #print(instrucao,parametros)
+                #print(user.getHome()+parametros)
+                instrucao={}
+                #print(user.getHome())
+                estado=self.arquivos.delete(user.getHome()+"/"+parametros)
+                instrucao['delete']=estado
+                instrucao=pickle.dumps(instrucao)
+                conexao.sendall(instrucao)
+        elif(comando=="get"):
+                #print("Comando cd")
+                pasta=instrucao
+                instrucao={}
+                path=user.getHome()+pasta[1]
+                #print("Caminho",path)
+                lista,file=self.arquivos.get(path)
+                #atualiza a rota da home..
+                if(lista is True):
+                    instrucao['get']=True
+                    instrucao['file']=file
+                    instrucao['nome']=pasta[1]
+                else:
+                    instrucao['get']=False
                 instrucao=pickle.dumps(instrucao)
                 conexao.sendall(instrucao)
         elif(comando=="rmdir"):
@@ -124,18 +168,21 @@ class ServidorConexao(object):
         msg='Bem vindo ao Zeus FTP v 1.0 2018.'
         msg=pickle.dumps(msg)
         connection.sendall(msg)
-        estado_login=False
+        #dicionario do estado de resposta
+        estado_login={}
+        estado_login['estado']=False
         data=connection.recv(1024)
         dados_login=pickle.loads(data)
         retorno,user =self.rpc_senha(dados_login['usuario'],dados_login['senha'])
         if(retorno):
-            estado_login=True
+            estado_login['estado']=True
+            estado_login['home']=user.getHome()
             #sucesso ao realizar o login
-            connection.sendall(pickle.dumps(True))
+            connection.sendall(pickle.dumps(estado_login))
         else:
             #erro ao efetuar o login
-            connection.sendall(pickle.dumps(False))
-        if(estado_login== True):
+            connection.sendall(pickle.dumps(estado_login))
+        if(estado_login['estado']== True):
             while True:
                 # Wait for a connection
                 try:
