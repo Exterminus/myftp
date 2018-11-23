@@ -17,6 +17,7 @@ class Cliente(object):
         self.ip_conexao=0
         self.porta=0
         self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp.settimeout(3)
         self.home=""
 
     def valida_dados(self,ip,porta):
@@ -64,7 +65,10 @@ class Cliente(object):
                 print("-",i)
     def salvar_arquivo(self,nome,file):
         arquivo=open(nome,"wb")
-        arquivo.writelines(file)
+        #print("File salvar",file)
+
+        arquivo.write(file.data)
+        print("transferência concluída.")
         arquivo.close()
     ##-------------------------------------
     def processa_resposta(self,resposta):
@@ -125,17 +129,31 @@ class Cliente(object):
                 comando_inst=pickle.dumps(comando)
                 self.tcp.sendall(comando_inst)
                 rec=[]
-                try:
-                    resposta1 = self.tcp.recv(4096)
-                    rec.append(resposta1)
-                    resposta=pickle.loads(b"".join(rec))
-                except Exception as e:
-                    while True:
-                        resposta2=self.tcp.recv(4096)
-                        rec.append(resposta2)
-                        if not resposta2:
-                            break
-                    resposta=pickle.loads(b"".join(rec))
+                recebido=0
+                while True:
+                    #print("entrou")
+                    resposta=""
+                    #print("w")
+                    resposta=self.tcp.recv(1024)
+                    rec.append(resposta)
+                    #print("P",len(resposta))
+                    recebido=len(resposta)-1024
+                    if(recebido<0):
+                        break
+                # print(len(resposta))
+                # print(rec)
+                # print("concluido!")
+                # try:
+                #     resposta1 = self.tcp.recv(4096)
+                #     rec.append(resposta1)
+                #     resposta=pickle.loads(b"".join(rec))
+                # except Exception as e:
+                #     while True:
+                #         resposta2=self.tcp.recv(4096)
+                #         rec.append(resposta2)
+                #         if not resposta2:
+                #             break
+                #     resposta=pickle.loads(b"".join(rec))
 
                 #resposta = []
                 # try:
@@ -146,7 +164,10 @@ class Cliente(object):
 
                     #print(len(packet))
                 #print(resposta.decode("utf8"))
-                #resposta=pickle.loads(resposta)
+                #print("RESP",rec)
+                #print("chegou aqui")
+                resposta=pickle.loads(b"".join(rec))
+                #print("chegou aqui")
                 self.processa_resposta(resposta)
             except Exception as e:
                 print(e,pickle.loads(comando_inst),resposta)

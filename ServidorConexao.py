@@ -10,6 +10,7 @@ import getpass
 import xmlrpc.client
 import pickle
 from Usuario import Usuario
+
 class ServidorConexao(object):
     """docstring for ServidorConexao."""
     def __init__(self):
@@ -23,6 +24,12 @@ class ServidorConexao(object):
         #chamada RPC para o servidor de arquivos.
         self.arquivos=xmlrpc.client.ServerProxy("http://localhost:8001/")
         self.usuarios_logados=[]
+
+    def envia_resposta(self,conexao,dados):
+        """envia uma resposta para o cliente"""
+        conexao.sendall(dados)
+        conexao.send(b'')
+        #conexao.sendall(b'\r\n')
 
     def rpc_senha(self,usuario,senha):
         """Valida a senha e usuario"""
@@ -51,7 +58,7 @@ class ServidorConexao(object):
     def comando_invalido(self,conexao):
         """retorna mensagem de comando invalido"""
         msg="Comando inválido ou faltando parametros."
-        conexao.sendall(pickle.dumps(msg))
+        self.envia_resposta(conexao,pickle.dumps(msg))
 
     def logoff(self,login):
         """realiza o logoff"""
@@ -69,10 +76,10 @@ class ServidorConexao(object):
         if(len(instrucao)>1):
             parametros=instrucao[1]
 
-        if(comando=="logout"):
+        if(comando=="quit"):
             print("Logout")
             instrucao={}
-            instrucao['logout']="logout"
+            instrucao['quit']="logout"
             instrucao=pickle.dumps(instrucao)
             print(instrucao)
             conexao.sendall(instrucao)
@@ -83,12 +90,13 @@ class ServidorConexao(object):
         elif(comando=="ls"):
             print("Retornando LS")
             instrucao={}
-            print(user.getHome())
+            #print(user.getHome())
             lista=self.arquivos.ls(user.getHome())
             instrucao['ls']=lista
             print("Instrucao LS",instrucao)
             instrucao=pickle.dumps(instrucao)
-            conexao.sendall(instrucao)
+            self.envia_resposta(conexao,instrucao)
+            #conexao.shutdown(socket.SHUT_WR)
         elif(comando =="cd"):
             #print("Comando cd")
             pasta=instrucao
@@ -105,7 +113,8 @@ class ServidorConexao(object):
             instrucao['home']=user.getHome()
             print("Instrucao CD",instrucao)
             instrucao=pickle.dumps(instrucao)
-            conexao.sendall(instrucao)
+            self.envia_resposta(conexao,instrucao)
+            #conexao.shutdown(socket.SHUT_WR)
         elif(comando=="mkdir"):
             #print("mkdir",len(instrucao),comando)
             if(len(instrucao)>1):
@@ -116,7 +125,7 @@ class ServidorConexao(object):
                 estado=self.arquivos.mkdir(user.getHome()+"/"+parametros)
                 instrucao['mkdir']=estado
                 instrucao=pickle.dumps(instrucao)
-                conexao.sendall(instrucao)
+                self.envia_resposta(conexao,instrucao)
         elif(comando=="delete"):
             #print("mkdir",len(instrucao),comando)
             if(len(instrucao)>1):
@@ -127,7 +136,7 @@ class ServidorConexao(object):
                 estado=self.arquivos.delete(user.getHome()+"/"+parametros)
                 instrucao['delete']=estado
                 instrucao=pickle.dumps(instrucao)
-                conexao.sendall(instrucao)
+                self.envia_resposta(conexao,instrucao)
         elif(comando=="get"):
                 #print("Comando cd")
                 pasta=instrucao
@@ -143,7 +152,8 @@ class ServidorConexao(object):
                 else:
                     instrucao['get']=False
                 instrucao=pickle.dumps(instrucao)
-                conexao.sendall(instrucao)
+                self.envia_resposta(conexao,instrucao)
+
         elif(comando=="rmdir"):
             if(len(instrucao)>1):
                 #print(instrucao,parametros)
@@ -153,16 +163,13 @@ class ServidorConexao(object):
                 estado=self.arquivos.rmdir(user.getHome()+"/"+parametros)
                 instrucao['rmdir']=estado
                 instrucao=pickle.dumps(instrucao)
-                conexao.sendall(instrucao)
+                self.envia_resposta(conexao,instrucao)
             else:
                 self.comando_invalido(conexao)
-            #instrucao['ls']=lista
-            #print("Instrucao LS",instrucao)
-            #instrucao=pickle.dumps(instrucao)
-            #conexao.sendall(instrucao)
         else:
             print('sending data back to the client')
-            conexao.sendall(pickle.dumps(comando))
+            self.envia_resposta(conexao,pickle.dumps(comando))
+
     def conectado(self,connection, cliente):
         """verificar o disparo e encerramento de threads"""
         msg='Bem vindo ao Zeus FTP v 1.0 2018.'

@@ -15,6 +15,7 @@ class ServidorArquivo(object):
     def setCaminho(self,nome_usuario):
         """define o caminho da home a partir do nome do usuário"""
         self.caminho+=nome_usuario+"/"
+
     def gera_caminho(self,lista):
         return "/".join(lista)
 
@@ -70,6 +71,7 @@ class ServidorArquivo(object):
         try:
             arquivo=open(caminho,"rb")
             file=arquivo.read()
+            #print("F",file)
             arquivo.close()
             return True,file
         except Exception as e:
