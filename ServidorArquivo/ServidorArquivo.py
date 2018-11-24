@@ -77,6 +77,20 @@ class ServidorArquivo(object):
         except Exception as e:
             return False,None
 
+    def put(self,caminho,file):
+        """escreve um arquivo no servidor"""
+        try:
+            arquivo=open(caminho,"wb")
+            file=arquivo.write(file.data)
+            arquivo.close()
+            print("ok put")
+            return True,file
+        except Exception as e:
+            print("erro put")
+            print(e)
+            print(caminho,arquivo.data)
+            return False,None
+
 
     def getCaminho(self):
         """retorna o caminho da home"""

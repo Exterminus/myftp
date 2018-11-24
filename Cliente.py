@@ -20,8 +20,25 @@ class Cliente(object):
         self.tcp.settimeout(3)
         self.home=""
 
-    def valida_dados(self,ip,porta):
-        pass
+    def verifica_comando(self,comando):
+        """verifica se o comando esta formatado antes de enviar"""
+        particao=comando.split(" ")
+        if("put" in comando):
+            #carrega o arquivo...
+            cmd=particao[1]
+            try:
+                arq=open(cmd,"rb")
+                file=arq.read()
+                arq.close()
+                return True, particao[0],particao[1],file
+            except Exception as e:
+                print("erro put",e)
+                return False,None,None,None
+        else:
+            #estado,comando,
+            if(len(particao)>1):
+                return True,particao[0],particao[1],None
+            return True,particao[0],None,None
 
     def login(self,usuario):
         """Realiza o pedido de Login"""
@@ -58,12 +75,14 @@ class Cliente(object):
         exit(-1)
     ##---------------------
     def exibe_lista(self,lista):
+        """exibe uma lista"""
         if(len(lista)<1):
             print("lista vazia")
         else:
             for i in lista:
                 print("-",i)
     def salvar_arquivo(self,nome,file):
+        """salva um arquivo, utilizado para get"""
         arquivo=open(nome,"wb")
         #print("File salvar",file)
 
@@ -102,6 +121,11 @@ class Cliente(object):
         elif("get" in resposta):
             if(resposta['get']):
                 self.salvar_arquivo(resposta['nome'],resposta['file'])
+        elif("put" in resposta):
+            if(resposta['put']):
+                print("Arquivo enviado com sucesso.")
+            else:
+                print("Erro ao enviar o arquivo.")
         elif("ls" in resposta):
             self.exibe_lista(resposta['ls'])
         elif("cd" in resposta):
@@ -118,16 +142,21 @@ class Cliente(object):
         self.home=home
         while(True):
             try:
-                # # Send data
-                # message = b'This is the message.  It will be repeated.'
-                # print('sending {!r}'.format(message))
-                # self.tcp.sendall(message)
-                # Look for the response
                 comando=""
                 comando=input(self.home+">>")
-                #print("CMD",comando)
-                comando_inst=pickle.dumps(comando)
-                self.tcp.sendall(comando_inst)
+                #comando_inst=pickle.dumps(comando)
+                #realiza uma pré verificação do comando digitado.
+                #cd casa
+                estado,comando_inst,caminho,file=self.verifica_comando(comando)
+                if(estado):
+                    cmd={}
+                    cmd['cmd']=comando_inst
+                    cmd['caminho']=caminho
+                    cmd['file']=file
+                    comando_inst=pickle.dumps(cmd)
+                    self.tcp.sendall(comando_inst)
+                else:
+                    print("verifique o comando digitado.")
                 rec=[]
                 recebido=0
                 while True:
@@ -140,41 +169,14 @@ class Cliente(object):
                     recebido=len(resposta)-1024
                     if(recebido<0):
                         break
-                # print(len(resposta))
-                # print(rec)
-                # print("concluido!")
-                # try:
-                #     resposta1 = self.tcp.recv(4096)
-                #     rec.append(resposta1)
-                #     resposta=pickle.loads(b"".join(rec))
-                # except Exception as e:
-                #     while True:
-                #         resposta2=self.tcp.recv(4096)
-                #         rec.append(resposta2)
-                #         if not resposta2:
-                #             break
-                #     resposta=pickle.loads(b"".join(rec))
-
-                #resposta = []
-                # try:
-                #     packet = self.tcp.recv(4096)
-                #     resposta.append(packet)
-                # except Exception as e:
-                #     exit()
-
-                    #print(len(packet))
-                #print(resposta.decode("utf8"))
-                #print("RESP",rec)
-                #print("chegou aqui")
                 resposta=pickle.loads(b"".join(rec))
-                #print("chegou aqui")
                 self.processa_resposta(resposta)
             except Exception as e:
-                print(e,pickle.loads(comando_inst),resposta)
-                # print('closing socket')
-                # self.tcp.close()
+                print(e)
                 self.encerrar_conexao()
+
     def coleta_dados(self):
+        """realiza a coleta dos dados de login"""
         try:
             ip=sys.argv[1]
             porta=sys.argv[2]

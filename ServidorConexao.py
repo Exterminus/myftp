@@ -69,14 +69,8 @@ class ServidorConexao(object):
 
     def processa_comando(self,conexao,comando,user):
         """processa os comandos"""
-        #encerra a conexao com o cliente
-        comando=pickle.loads(comando)
-        instrucao=comando.split(" ")
-        comando=instrucao[0]
-        if(len(instrucao)>1):
-            parametros=instrucao[1]
 
-        if(comando=="quit"):
+        if(comando['cmd']=="quit"):
             print("Logout")
             instrucao={}
             instrucao['quit']="logout"
@@ -87,22 +81,22 @@ class ServidorConexao(object):
             conexao.close()
             thread.exit()
 
-        elif(comando=="ls"):
+        elif(comando['cmd']=="ls"):
             print("Retornando LS")
             instrucao={}
             #print(user.getHome())
             lista=self.arquivos.ls(user.getHome())
             instrucao['ls']=lista
-            print("Instrucao LS",instrucao)
+            #print("Instrucao LS",instrucao)
             instrucao=pickle.dumps(instrucao)
             self.envia_resposta(conexao,instrucao)
             #conexao.shutdown(socket.SHUT_WR)
-        elif(comando =="cd"):
+        elif(comando['cmd'] =="cd"):
             #print("Comando cd")
-            pasta=instrucao
-            print("CMD",comando,"Instrucao",instrucao)
+            pasta=comando['caminho']
+            print("CMD",comando,"Instrucao",comando['caminho'])
             instrucao={}
-            path=user.getHome()+pasta[1]
+            path=user.getHome()+pasta
             print("Caminho",path)
             lista,new_path=self.arquivos.cd(path)
             #atualiza a rota da home..
@@ -115,33 +109,30 @@ class ServidorConexao(object):
             instrucao=pickle.dumps(instrucao)
             self.envia_resposta(conexao,instrucao)
             #conexao.shutdown(socket.SHUT_WR)
-        elif(comando=="mkdir"):
+        elif(comando['cmd']=="mkdir"):
             #print("mkdir",len(instrucao),comando)
-            if(len(instrucao)>1):
-                #print(instrucao,parametros)
-                #print(user.getHome()+parametros)
+            if(comando['caminho']):
                 instrucao={}
                 #print(user.getHome())
-                estado=self.arquivos.mkdir(user.getHome()+"/"+parametros)
+                estado=self.arquivos.mkdir(user.getHome()+"/"+comando['caminho'])
                 instrucao['mkdir']=estado
                 instrucao=pickle.dumps(instrucao)
                 self.envia_resposta(conexao,instrucao)
-        elif(comando=="delete"):
+        elif(comando['cmd']=="delete"):
             #print("mkdir",len(instrucao),comando)
-            if(len(instrucao)>1):
-                #print(instrucao,parametros)
-                #print(user.getHome()+parametros)
+            if(comando['caminho']):
                 instrucao={}
                 #print(user.getHome())
-                estado=self.arquivos.delete(user.getHome()+"/"+parametros)
+                estado=self.arquivos.delete(user.getHome()+"/"+comando['caminho'])
                 instrucao['delete']=estado
                 instrucao=pickle.dumps(instrucao)
                 self.envia_resposta(conexao,instrucao)
-        elif(comando=="get"):
+        elif(comando['cmd']=="get"):
                 #print("Comando cd")
-                pasta=instrucao
+                print("Comando Get")
+                pasta=comando['caminho']
                 instrucao={}
-                path=user.getHome()+pasta[1]
+                path=user.getHome()+pasta
                 #print("Caminho",path)
                 lista,file=self.arquivos.get(path)
                 #atualiza a rota da home..
@@ -154,13 +145,31 @@ class ServidorConexao(object):
                 instrucao=pickle.dumps(instrucao)
                 self.envia_resposta(conexao,instrucao)
 
-        elif(comando=="rmdir"):
-            if(len(instrucao)>1):
-                #print(instrucao,parametros)
-                #print(user.getHome()+parametros)
+        elif(comando['cmd']=="put"):
+                #print("Comando cd")
+                print("Comando put")
+                if(comando['file']):
+                    nome_arquivo=comando['caminho']
+                    instrucao={}
+                    path=user.getHome()+nome_arquivo
+                    #print("Caminho",path)
+                    lista,file=self.arquivos.put(path,comando['file'])
+                    #atualiza a rota da home..
+                    if(lista is True):
+                        instrucao['put']=True
+                    else:
+                        instrucao['put']=False
+                    instrucao=pickle.dumps(instrucao)
+                    self.envia_resposta(conexao,instrucao)
+                else:
+                    self.comando_invalido(conexao)
+
+
+        elif(comando['cmd']=="rmdir"):
+            if(comando['caminho']):
                 instrucao={}
                 #print(user.getHome())
-                estado=self.arquivos.rmdir(user.getHome()+"/"+parametros)
+                estado=self.arquivos.rmdir(user.getHome()+"/"+comando['caminho'])
                 instrucao['rmdir']=estado
                 instrucao=pickle.dumps(instrucao)
                 self.envia_resposta(conexao,instrucao)
@@ -195,16 +204,25 @@ class ServidorConexao(object):
                 try:
                     print('connection from', cliente)
                     # Receive the data in small chunks and retransmit it
-                    data = connection.recv(1024)
-                    print(data)
-                    print('received',pickle.loads(data))
+                    #data = connection.recv(1024)
+                    rec=[]
+                    recebido=0
+                    data=""
+                    while True:
+                        #print("entrou")
+                        data=""
+                        #print("w")
+                        #buffer de recebimento dos dados.
+                        data=connection.recv(1024)
+                        rec.append(data)
+                        #print("P",len(data))
+                        recebido=len(data)-1024
+                        if(recebido<0):
+                            break
+                    #combina os dados
+                    data=pickle.loads(b"".join(rec))
                     self.processa_comando(connection,data,user)
-                    # if data:
-                    #     print('sending data back to the client')
-                    #     connection.sendall(data)
-                    # else:
-                    #     print('no data from', cliente)
-                    #     break
+
                 except Exception as e:
                     # Clean up the connection
                     print("e",e)

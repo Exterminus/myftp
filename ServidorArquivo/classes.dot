@@ -1,5 +1,0 @@
-digraph "classes" {
-charset="utf-8"
-rankdir=BT
-"0" [label="{ServidorArquivo|caminho : str\l|comandos_validos()\lgetCaminho()\lls()\lmkdir()\lrmdir()\lsetCaminho()\l}", shape="record"];
-}
