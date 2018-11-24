@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
+"""
+Servidor de arquivo
+Módulo com classe Arquivo.
+Carlos Magno
+UFSJ
+"""
 from xmlrpc.server import SimpleXMLRPCServer
 import sys
 import os
@@ -29,7 +37,7 @@ class ServidorArquivo(object):
         """caminha pela home"""
         if(".." in caminho):
             path=caminho.split("/")
-            print("len",len(path))
+
             if(len(path)==2):
                 print("erro")
                 return False,None
@@ -52,6 +60,7 @@ class ServidorArquivo(object):
         except Exception as e:
             return False
     def delete(self,nome):
+        """deleta um arquivo"""
         try:
             os.remove(nome)
             return True
@@ -96,8 +105,15 @@ class ServidorArquivo(object):
         """retorna o caminho da home"""
         return self.caminho
 
-    def comandos_validos(self):
-        pass
+    def novahome(self,nome):
+        """cria uma nova home de usuário"""
+        try:
+            print(nome)
+            os.mkdir(self.caminho+nome)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
 
 #porta onde o mesmo está sendo executado
@@ -110,9 +126,3 @@ print("Servidor de arquivo executando na porta",porta)
 server.register_instance(ServidorArquivo())
 #deixa o servidor de senha em loop
 server.serve_forever()
-
-# teste= ServidorArquivo()
-# teste.setCaminho("zeus")
-# teste.getCaminho()
-# teste.ls()
-# #teste.ls()
