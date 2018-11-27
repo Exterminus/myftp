@@ -27,11 +27,21 @@ class ServidorConexao(object):
         self.tcp.listen(1)
         #chamada RPC para o servidor de senha.
         # Atualizar ip servidor de senha.
-        self.senha_auth=xmlrpc.client.ServerProxy("http://localhost:8000/")
+        ip_servidor_senha="http://172.18.1.34:8000"
+        #ip_servidor_senha_local="http://localhost:8000/"
+        try:
+            self.senha_auth=xmlrpc.client.ServerProxy(ip_servidor_senha)
+        except Exception as e:
+            print("erro ao estabelecer comunicação com o servidor de senha.")
+
         #chamada RPC para o servidor de arquivos.
         # Atualalizr ip do servidor de arquivos.
-        self.arquivos=xmlrpc.client.ServerProxy("http://localhost:8001/")
+        ip_servidor_arquivo="http://172.18.1.35:8001"
+        self.arquivos=xmlrpc.client.ServerProxy(ip_servidor_arquivo)
         self.usuarios_logados=[]
+
+    def senha_on(self):
+        print(self.senha_auth.on())
 
     def envia_resposta(self,conexao,dados):
         """envia uma resposta para o cliente"""
@@ -41,6 +51,7 @@ class ServidorConexao(object):
         """Valida a senha e usuario"""
         try:
             retorno,permissao=self.senha_auth.login(usuario,senha)
+            print(retorno)
             if(retorno):
                 #devolve a resposta de login sucesso
                 user=self.sucess_login(usuario,permissao)
@@ -263,4 +274,8 @@ class ServidorConexao(object):
 
 
 servidor= ServidorConexao()
+# try:
+#     print(servidor.senha_on())
+# except Exception as e:
+#     print("erro",e)
 servidor.iniciar_servidor()

@@ -27,6 +27,7 @@ class ServidorSenha(object):
     def login(self,usuario,senha):
         """Valida nome e usuário para login"""
         dados=self.colecao.find_one({"login":usuario})
+        print("chegou aqui")
         if(dados is None):
             print("Usuário não encontrado")
             return False,False
@@ -56,15 +57,17 @@ class ServidorSenha(object):
             print("erro ao criar o usuário")
             print(e)
             return False
+    def on(self):
+        return "Estou acessível"
 #porta onde o mesmo está sendo executado
 porta=8000
 #instancia a classe de senha
 #SenhaAuth= ServidorSenha()
 #Chama de procedimendo remoto RPC
-server= SimpleXMLRPCServer(("localhost",porta))
+ip="172.18.1.34"
+server= SimpleXMLRPCServer(("172.18.1.34",porta))
 print("Servidor de senha executando na porta",porta)
-ip=socket.gethostbyname(socket.gethostname())
-print("Executando com o ip",ip)
+print("O ip definido está como: ",ip)
 #registra a instância do Servidor de senha para RPC
 server.register_instance(ServidorSenha())
 #deixa o servidor de senha em loop

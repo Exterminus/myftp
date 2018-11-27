@@ -120,8 +120,8 @@ class ServidorArquivo(object):
 #porta onde o mesmo está sendo executado
 porta=8001
 #Chama de procedimendo remoto RPC
-server= SimpleXMLRPCServer(("localhost",porta))
-ip=socket.gethostbyname(socket.gethostname())
+ip="172.18.1.35"
+server= SimpleXMLRPCServer((ip,porta))
 print("Servidor de arquivo executando no ip ",ip," porta:",porta)
 #registra a instância do Servidor de senha para RPC
 #Todos os métodos da classe se tornam acessiveis.
