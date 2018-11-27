@@ -13,7 +13,7 @@ import xmlrpc.client
 import pickle
 from Usuario import Usuario
 import ssl
-
+import socket
 class ServidorConexao(object):
     """docstring for ServidorConexao."""
     def __init__(self):
@@ -26,8 +26,10 @@ class ServidorConexao(object):
         self.tcp.bind((self.ip,self.porta))
         self.tcp.listen(1)
         #chamada RPC para o servidor de senha.
+        # Atualizar ip servidor de senha.
         self.senha_auth=xmlrpc.client.ServerProxy("http://localhost:8000/")
         #chamada RPC para o servidor de arquivos.
+        # Atualalizr ip do servidor de arquivos.
         self.arquivos=xmlrpc.client.ServerProxy("http://localhost:8001/")
         self.usuarios_logados=[]
 
@@ -248,7 +250,8 @@ class ServidorConexao(object):
                     thread.exit()
 
     def iniciar_servidor(self):
-        print("Servidor Iniciado.. na porta",self.porta)
+        ip=socket.gethostbyname(socket.gethostname())
+        print("Servidor Iniciado.. no IP ",ip," Porta:",self.porta)
         while True:
             con, cliente = self.tcp.accept()
             try:

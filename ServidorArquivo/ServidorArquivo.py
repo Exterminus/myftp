@@ -10,6 +10,7 @@ UFSJ
 from xmlrpc.server import SimpleXMLRPCServer
 import sys
 import os
+import socket
 
 #usado para deletar, cuidado ao utilizar
 import shutil
@@ -120,7 +121,8 @@ class ServidorArquivo(object):
 porta=8001
 #Chama de procedimendo remoto RPC
 server= SimpleXMLRPCServer(("localhost",porta))
-print("Servidor de arquivo executando na porta",porta)
+ip=socket.gethostbyname(socket.gethostname())
+print("Servidor de arquivo executando no ip ",ip," porta:",porta)
 #registra a instância do Servidor de senha para RPC
 #Todos os métodos da classe se tornam acessiveis.
 server.register_instance(ServidorArquivo())
