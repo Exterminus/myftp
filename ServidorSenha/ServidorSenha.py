@@ -9,7 +9,7 @@ from hmac import compare_digest as comparador
 import crypt
 from xmlrpc.server import SimpleXMLRPCServer
 import xmlrpc.client
-
+import socket
 class ServidorSenha(object):
     """docstring for ServidorSenha."""
     def __init__(self):
@@ -63,6 +63,8 @@ porta=8000
 #Chama de procedimendo remoto RPC
 server= SimpleXMLRPCServer(("localhost",porta))
 print("Servidor de senha executando na porta",porta)
+ip=socket.gethostbyname(socket.gethostname())
+print("Executando com o ip",ip)
 #registra a instância do Servidor de senha para RPC
 server.register_instance(ServidorSenha())
 #deixa o servidor de senha em loop
