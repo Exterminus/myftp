@@ -34,11 +34,25 @@ class ServidorArquivo(object):
         arquivos=os.listdir(home)
         return arquivos
 
+    def help(self):
+        """contém uma lista dos comandos validos"""
+        validos={}
+        validos['help'] = "Exibe os comandos válidos."
+        validos['ls']=" Lista um diretorio"
+        validos['cd']=" Utilizado para navegador entre diretorios cd <nome_pasta> ou cd .."
+        validos['mkdir'] =" Utilizado para criar um novo diretorio. mkdir <nome_diretorio>"
+        validos['delete'] = " Remove um arquivo. delete <nome_arquivo>"
+        validos['rmdir'] =" Remove um diretorio. rmdir <nome_pasta>"
+        validos['get'] =" Realiza o dowload de um arquivo do servidor."
+        validos['put'] = " Envia um arquivo para o servidor."
+        validos['newuser'] = "Cria um novo usuário. newuser <nome> <senha> False"
+        validos['quit'] =" Encerra o cliente."
+        return validos
+
     def cd(self,caminho):
         """caminha pela home"""
         if(".." in caminho):
             path=caminho.split("/")
-
             if(len(path)==2):
                 print("erro")
                 return False,None
@@ -121,6 +135,8 @@ class ServidorArquivo(object):
 porta=8001
 #Chama de procedimendo remoto RPC
 ip="172.18.1.35"
+#ip cliente
+ip="127.0.0.1"
 server= SimpleXMLRPCServer((ip,porta))
 print("Servidor de arquivo executando no ip ",ip," porta:",porta)
 #registra a instância do Servidor de senha para RPC

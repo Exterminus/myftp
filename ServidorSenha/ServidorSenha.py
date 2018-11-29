@@ -64,8 +64,9 @@ porta=8000
 #instancia a classe de senha
 #SenhaAuth= ServidorSenha()
 #Chama de procedimendo remoto RPC
-ip="172.18.1.34"
-server= SimpleXMLRPCServer(("172.18.1.34",porta))
+#ip="172.18.1.34"
+ip="127.0.0.1"
+server= SimpleXMLRPCServer((ip,porta))
 print("Servidor de senha executando na porta",porta)
 print("O ip definido está como: ",ip)
 #registra a instância do Servidor de senha para RPC

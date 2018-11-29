@@ -121,8 +121,12 @@ class Cliente(object):
         """processa a resposta recebida do servidor"""
         if(resposta is True or resposta is None):
             print(resposta)
-
-        if("rmdir" in resposta):
+        if("help" in resposta):
+            print("---Help---\n")
+            for i in resposta:
+                print("comando:",i,"-",resposta[i])
+            print("------")
+        elif("rmdir" in resposta):
             #print(resposta['rmdir'])
             if(resposta['rmdir'] is True):
                 #print(resposta['rmdir'])

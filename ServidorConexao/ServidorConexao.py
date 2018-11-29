@@ -27,17 +27,24 @@ class ServidorConexao(object):
         self.tcp.listen(1)
         #chamada RPC para o servidor de senha.
         # Atualizar ip servidor de senha.
-        ip_servidor_senha="http://172.18.1.34:8000"
+        #----------------------------------------------------------
+        self.ip_servidor_senha="http://127.0.0.1:8000"
+        #ip_servidor_senha="http://172.18.1.34:8000"
         #ip_servidor_senha_local="http://localhost:8000/"
+
+        #-----------------------------------------------------------
         try:
-            self.senha_auth=xmlrpc.client.ServerProxy(ip_servidor_senha)
+            self.senha_auth=xmlrpc.client.ServerProxy(self.ip_servidor_senha)
         except Exception as e:
             print("erro ao estabelecer comunicação com o servidor de senha.")
 
         #chamada RPC para o servidor de arquivos.
-        # Atualalizr ip do servidor de arquivos.
-        ip_servidor_arquivo="http://172.18.1.35:8001"
-        self.arquivos=xmlrpc.client.ServerProxy(ip_servidor_arquivo)
+        #-------------------------------------------------------------------------
+        # Atualiza ip do servidor de arquivos.
+        #ip_servidor_arquivo="http://172.18.1.35:8001"
+        self.ip_servidor_arquivo="http://127.0.0.1:8001"
+        #------------------------------------------------------------------------
+        self.arquivos=xmlrpc.client.ServerProxy(self.ip_servidor_arquivo)
         self.usuarios_logados=[]
 
     def senha_on(self):
@@ -149,7 +156,6 @@ class ServidorConexao(object):
 
             if(comando['caminho']):
                 instrucao={}
-
                 estado=self.arquivos.mkdir(user.getHome()+"/"+comando['caminho'])
                 instrucao['mkdir']=estado
                 instrucao=pickle.dumps(instrucao)
@@ -174,7 +180,7 @@ class ServidorConexao(object):
                 if(lista is True):
                     instrucao['get']=True
                     instrucao['file']=file
-                    instrucao['nome']=pasta[1]
+                    instrucao['nome']=pasta
                 else:
                     instrucao['get']=False
                 instrucao=pickle.dumps(instrucao)
@@ -198,7 +204,14 @@ class ServidorConexao(object):
                     self.envia_resposta(conexao,instrucao)
                 else:
                     self.comando_invalido(conexao)
-
+        elif(comando['cmd']=="help"):
+            print("Comando HELP")
+            instrucao={}
+            retorno=self.arquivos.help()
+            instrucao['help']=retorno
+            print(instrucao)
+            instrucao=pickle.dumps(retorno)
+            self.envia_resposta(conexao,instrucao)
 
         elif(comando['cmd']=="rmdir"):
             if(comando['caminho']):
@@ -216,7 +229,7 @@ class ServidorConexao(object):
 
     def conectado(self,connection, cliente):
         """verificar o disparo e encerramento de threads"""
-        msg='Bem vindo ao Zeus FTP v 1.0\nConexão segura estabelecida!'
+        msg='Bem vindo ao Zeus FTP v 1.0\nConexão segura estabelecida!\nDigite help para ver os comandos válidos.'
         msg=pickle.dumps(msg)
         connection.sendall(msg)
         #dicionario do estado de resposta
@@ -261,8 +274,10 @@ class ServidorConexao(object):
                     thread.exit()
 
     def iniciar_servidor(self):
-        ip=socket.gethostbyname(socket.gethostname())
-        print("Servidor Iniciado.. no IP ",ip," Porta:",self.porta)
+        ip_local="http://127.0.0.1"
+        print("Servidor Iniciado.. no IP ",ip_local," Porta:",self.porta)
+        print("IP Servidor de senha ",self.ip_servidor_senha)
+        print("IP servidor de Arquivos ",self.ip_servidor_arquivo)
         while True:
             con, cliente = self.tcp.accept()
             try:

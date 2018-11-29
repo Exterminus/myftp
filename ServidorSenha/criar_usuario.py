@@ -9,7 +9,10 @@ client= MongoClient('localhost',27017)
 db=client.zeus
 #colecao onde as senhas estão armazenadas
 colecao=db.senhas
-
+def unique_key():
+    """evita a criacao de usuarios duplicados"""
+    colecao.create_index("login",unique=True)
+    #db.members.createIndex( { "user_id": 1 }, { unique: true } )
 def novo_usuario(usuario,senha,root):
     """Cria e insere um usuário no banco"""
     if("True" in root):
@@ -27,6 +30,7 @@ def novo_usuario(usuario,senha,root):
         return False
 
 
-estado=novo_usuario("zeus","4363","True")
+estado=novo_usuario("zeus","12345","True")
 if(estado):
     print("Usuario criado com sucesso")
+unique_key()
